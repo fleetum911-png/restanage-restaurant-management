@@ -1,0 +1,5 @@
+import {api} from './api.js'
+function normalizeOrder(order){const items=Array.isArray(order.items)?order.items:[];return {...order,id:String(order.id).startsWith('#')?String(order.id):`#${order.id}`,items:items.length?items.map(item=>`${item.quantity} × ${item.name}`).join(', '):(order.items||''),status:order.status||'New',type:order.type?(order.tableNumber?`${order.type} · T${order.tableNumber}`:order.type):'Dine in',time:order.time||order.createdAt||'Just now',amount:Number(order.amount??order.total??0)}}
+export async function getOrders(params){const {data}=await api.get('/orders',{params});return (Array.isArray(data)?data:(data.orders||[])).map(normalizeOrder)}
+export async function createOrder(order){const {data}=await api.post('/orders',order);return normalizeOrder(data.order||data)}
+export async function updateOrderStatus(orderId,status){const id=String(orderId).replace(/^#/,'');const {data}=await api.patch(`/orders/${encodeURIComponent(id)}/status`,{status});return normalizeOrder(data.order||data)}
